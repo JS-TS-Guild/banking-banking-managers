@@ -101,7 +101,7 @@ export default class Bank {
                 senderBankAccounts.push(senderBankAccount)
             }
         }
-        TransactionService.makeTransaction(senderBankAccounts, receiverBankAccount, amount, bankAllowsNegative)
+        TransactionService.makeTransaction(senderBankAccounts, receiverBankAccount, amount, bankAllowsNegative, sender)
 
     }
 }

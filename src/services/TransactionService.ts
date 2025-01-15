@@ -1,7 +1,8 @@
 import BankAccount from "@/models/bank-account";
+import User from "@/models/user";
 
 export default class TransactionService{
-    static makeTransaction(senderAccounts: BankAccount[], receiverAccount:BankAccount, amount: number, bankAllowsNegative: boolean){
+    static makeTransaction(senderAccounts: BankAccount[], receiverAccount:BankAccount, amount: number, bankAllowsNegative: boolean, sender: User){
         let remainingBalance = amount
         
         // Use all senders accounts to debit the amount
@@ -10,6 +11,7 @@ export default class TransactionService{
             let debitAmount = Math.min(remainingBalance, senderAccountBalance)
 
             senderAccounts[i].debit(debitAmount)
+            sender.setAccounts(senderAccounts[i].getId())
             remainingBalance -= debitAmount
 
             if(remainingBalance <= 0){
