@@ -1,6 +1,6 @@
 import Bank from "@/models/bank";
 import User from "@/models/user";
-
+import { BankId, UserId } from "@/types/Common";
 export default class GlobalRegistry {
 
     private static userRegistry: {[userId: string]: User} = {};
@@ -15,13 +15,13 @@ export default class GlobalRegistry {
         }
     }
 
-    static getUser(userId: string): User | null{
+    static getUser(userId: UserId): User | null{
         return this.userRegistry[userId] || null;
     }
 
 
     // TO ADD AND GET BANKS  FROM GLOBAL REGISTRY
-    static addBank(bankId: string, bank:Bank){
+    static addBank(bankId: BankId, bank:Bank){
         if(this.bankRegistry[bankId]){
             throw new Error("Bank Account already exists")
         }else{
@@ -29,7 +29,7 @@ export default class GlobalRegistry {
         }
     }
 
-    static getBank(bankId: string): Bank | null{
+    static getBank(bankId: BankId): Bank | null{
         return this.bankRegistry[bankId] || null;
     }
 

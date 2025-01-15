@@ -1,4 +1,5 @@
 import GlobalRegistry from "@/services/GlobalRegistry";
+import { UserId } from "@/types/Common";
 import { idGenerator } from "@/utils/idgen";
 
 export default class User {
@@ -23,7 +24,7 @@ export default class User {
     return this.userId;
   }
 
-  static getUser(userId: string){
+  static getUser(userId: UserId){
     return GlobalRegistry.getUser(userId)
   }
 

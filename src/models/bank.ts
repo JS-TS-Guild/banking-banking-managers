@@ -2,6 +2,8 @@ import { idGenerator } from "@/utils/idgen";
 import BankAccount from "./bank-account";
 import User from "./user";
 import GlobalRegistry from "@/services/GlobalRegistry";
+import TransactionService from "@/services/TransactionService";
+import { BankAccountId, BankId, UserId } from "@/types/Common";
 
 export default class Bank {
     private id: string;
@@ -43,7 +45,7 @@ export default class Bank {
         return account;
     }
 
-    getAccount(accountId: string): BankAccount | null{
+    getAccount(accountId: BankAccountId): BankAccount | null{
         if (this.bankAccounts.hasOwnProperty(accountId)) {
             return this.bankAccounts[accountId];
         } else {
@@ -52,42 +54,29 @@ export default class Bank {
         }
     }
 
-    send(senderUserId: string, receiverUserId: string, amount: number, receiverBankId?: string){
+    send(senderUserId: UserId, receiverUserId: UserId, amount: number, receiverBankId?: BankId){
         let allBanks = GlobalRegistry.getBanks();
-        let transactionStatus:boolean;
+        let bankAllowsNegative: boolean
 
         let sender: User = GlobalRegistry.getUser(senderUserId)
         let senderBankAccount: BankAccount;
+        let senderBankAccounts: BankAccount[] = [];
         let senderAccountIds = sender.getAccounts();
 
         let receiver: User = GlobalRegistry.getUser(receiverUserId)
         let receiverBankAccount: BankAccount;
         let receiverAccountIds = receiver.getAccounts();
-        console.log(this.bankAccounts)
-        console.log("\n\nAll Banks: \n",GlobalRegistry.getBanks(),"\n")
-
-        console.log("Sender: ",sender,)
-        console.log("Sender Account Ids: ", sender.getAccounts(),"\n")
-
-        console.log("Receiver: ",receiver)
         
         // Fetching Receiver Bank Account
         if(receiverBankId){
-            console.log("Receiver Account Ids: ", receiverAccountIds,"\n")
-
             let bank = allBanks[receiverBankId]
-            console.log("Receiver Bank: ",bank)
-
             for(let i = 0; i < receiverAccountIds.length; i++){
                 receiverBankAccount = bank.getAccount(receiverAccountIds[i])
                 if(receiverBankAccount !== null){
                     break;
                 }
-                console.log("\n\nReceiver Bank Account: ",receiverBankAccount)
             }
         }else{
-            console.log("Receiver Account Ids: ", receiverAccountIds,"\n")
-
             for(const bankId in allBanks){
                 const bank = allBanks[bankId]
                 let receiverAccountFound = false;
@@ -107,26 +96,12 @@ export default class Bank {
         //Fetching Sender Bank Account
         for(const accountId of senderAccountIds){
             senderBankAccount = this.getAccount(accountId)
-            let bankAllowsNegative = this.getBankAllowsNegative()
-            if(senderBankAccount == null){
-                continue
-            }else{
-                if(!bankAllowsNegative && senderBankAccount.getBalance() >= amount){
-                    senderBankAccount.debit(amount)
-                    receiverBankAccount.credit(amount)
-                    transactionStatus = true
-                    break
-                }else if(bankAllowsNegative){
-                    senderBankAccount.debit(amount)
-                    receiverBankAccount.credit(amount)
-                    transactionStatus = true
-                    break;
-                }
+            bankAllowsNegative = this.getBankAllowsNegative()
+            if(senderBankAccount !== null){
+                senderBankAccounts.push(senderBankAccount)
             }
         }
-        
-        if(!transactionStatus){
-            throw new Error("Insufficient funds")
-        }
+        TransactionService.makeTransaction(senderBankAccounts, receiverBankAccount, amount, bankAllowsNegative)
+
     }
 }
